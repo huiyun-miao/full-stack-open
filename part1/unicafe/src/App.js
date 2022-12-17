@@ -27,30 +27,32 @@ const Statistics = (props) => {
     //   <StatisticLine text="positive" value={props.good / props.all * 100 + " %"} />
     // </div>
     <table>
-      <tr>
-        <td>good</td>
-        <td>{props.good}</td>
-      </tr>
-      <tr>
-        <td>neutral</td>
+      <tbody>
+        <tr>
+          <td>good</td>
+          <td>{props.good}</td>
+        </tr>
+        <tr>
+          <td>neutral</td>
         <td>{props.neutral}</td>
-      </tr>
-      <tr>
-        <td>bad</td>
-        <td>{props.bad}</td>
-      </tr>
-      <tr>
-        <td>all</td>
-        <td>{props.all}</td>
-      </tr>
-      <tr>
-        <td>average</td>
-        <td>{(props.good - props.bad)/props.all}</td>
-      </tr>
-      <tr>
-        <td>positive</td>
-        <td>{props.good / props.all * 100 + " %"}</td>
-      </tr>
+       </tr>
+        <tr>
+          <td>bad</td>
+          <td>{props.bad}</td>
+        </tr>
+        <tr>
+          <td>all</td>
+          <td>{props.all}</td>
+        </tr>
+        <tr>
+          <td>average</td>
+          <td>{(props.good - props.bad)/props.all}</td>
+        </tr>
+        <tr>
+          <td>positive</td>
+          <td>{props.good / props.all * 100 + " %"}</td>
+        </tr>
+      </tbody>
     </table>
   )
 }
