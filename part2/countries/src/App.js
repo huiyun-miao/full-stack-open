@@ -9,6 +9,33 @@ const Filter = ({ searchKey, searchChange }) => {
   )
 }
 
+const Weather = ({ country }) => {
+  const api_key = process.env.REACT_APP_API_KEY
+  const lat = country.capitalInfo.latlng[0]
+  const lon = country.capitalInfo.latlng[1]
+  const [weather, setWeather] = useState()
+  const url = `https://api.openweathermap.org/data/2.5/weather?lat=${lat}&lon=${lon}&units=metric&appid=${api_key}`
+  
+  useEffect(() => {
+    axios
+    .get(url)
+    .then(response => {
+      setWeather(response.data)
+      })
+  }, [url])
+
+  if (weather) {
+    return (
+      <div>
+        <h2>Weather in {country.capital}</h2>
+        <p>temperature {weather.main.temp} Celcius</p>
+        <img src={`http://openweathermap.org/img/wn/${weather.weather[0].icon}@2x.png`} alt='weather icon' />
+        <p>wind {weather.wind.speed} m/s</p>
+      </div>
+    )
+  }
+}
+
 const View = ({ country }) => {
   const languages = Object.values(country.languages)
 
@@ -36,7 +63,12 @@ const Button = ({ show, setShow }) => {
 
 const Show = ({ show, country }) => {
   if (show) {
-    return <View country={country} />
+    return (
+      <div>
+        <View country={country} />
+        <Weather country={country} />
+      </div>
+    )
   }
 }
 
