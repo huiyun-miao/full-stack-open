@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import axios from 'axios'
+import phonebookService from './services/phonebook'
 
 const Filter = ({ searchKey, searchChange }) => {
   return (
@@ -19,9 +19,36 @@ const PersonForm = ({ addPerson, newName, nameChange, newNumber, numberChange })
   )
 }
 
-const Persons = ({ persons }) => {
+const Person = ({ person, deletePerson }) => {
   return (
-    persons.map(person => <div key={person.name}>{person.name} {person.number}</div>)
+    <div>
+      {person.name} {person.number}
+      <button onClick={deletePerson}>delete</button>
+    </div>
+  )
+}
+
+const Notification = ({ message }) => {
+  if (message === '') {
+    return
+  }
+
+  return (
+    <div className='notification'>
+      {message}
+    </div>
+  )
+}
+
+const Error = ({ message }) => {
+  if (message === '') {
+    return
+  }
+
+  return (
+    <div className='error'>
+      {message}
+    </div>
   )
 }
 
@@ -30,32 +57,77 @@ const App = () => {
   const [newName, setNewName] = useState('')
   const [newNumber, setNewNumber] = useState('')
   const [searchKey, setSearchKey] = useState('')
+  const [message, setMessage] = useState('')
+  const [errorMessage, setErrorMessage] = useState('')
 
   useEffect(() => {
-    console.log('effect')
-    axios
-      .get('http://localhost:3001/persons')
-      .then(response => {
-        console.log('promise fulfilled')
-        setPersons(response.data)
+    phonebookService
+      .getAll()
+      .then(initialData => {
+        setPersons(initialData)
       })
   }, [])
+
+  const changeNumberOf = (id) => {
+    const person = persons.find(p => p.id === id)
+    const changePerson = { ...person, number: newNumber }
+
+    phonebookService
+      .update(id, changePerson)
+      .then(returnedPerson => {
+        setPersons(persons.map(p => p.id !== id ? p : returnedPerson))
+        setNewName('')
+        setNewNumber('')
+      })
+      .catch(error => {
+        setErrorMessage(
+          `Information of ${newName} has already been removed from server`
+        )
+        setTimeout(() => {setErrorMessage('')}, 5000)
+        setNewName('')
+        setNewNumber('')
+        setPersons(persons.filter(p => p.id !== id))
+      })
+  }
 
   const addPerson = (event) => {
     event.preventDefault()
     if (persons.map(person => person.name).includes(newName)) {
-      return (
-        window.alert(`${newName} is already added to phonebook`)
-      )
+      if (window.confirm(`${newName} is already added to phonebook, replace the old number with a new one?`)) {
+        const person = persons.find(p => p.name === newName)
+        return changeNumberOf(person.id)
+      } else {
+          setNewName('')
+          setNewNumber('')
+          return
+      }
     }
+
     const personObject = {
       name: newName,
       number: newNumber
     }
 
-    setPersons(persons.concat(personObject))
-    setNewName('')
-    setNewNumber('')
+    phonebookService
+      .create(personObject)
+      .then(newPerson => {
+        setPersons(persons.concat(newPerson))
+        setNewName('')
+        setNewNumber('')
+        setMessage(`Added ${newName}`)
+        setTimeout(() => {setMessage('')}, 5000)
+      })
+  }
+
+  const deletePerson = (person) => {
+    const id = person.id
+    if (window.confirm(`Delete ${person.name}?`)) {
+      phonebookService
+        .deleteById(id)
+        .then(
+          setPersons(persons.filter(p => p.id !== id))
+        )
+    }
   }
 
   const nameChange = (event) => {
@@ -79,12 +151,20 @@ const App = () => {
   return (
     <div>
       <h2>Phonebook</h2>
+      <Notification message={message} />
+      <Error message={errorMessage} />
       <Filter searchKey={searchKey} searchChange={searchChange} />
       <h3>add a new</h3>
       <PersonForm addPerson={addPerson} newName={newName} newNumber={newNumber} 
         nameChange={nameChange} numberChange={numberChange} />
       <h3>Numbers</h3>
-      <Persons persons={searchResult(persons, searchKey)} />
+      {searchResult(persons, searchKey).map(person => 
+        <Person 
+          key={person.id} 
+          person={person} 
+          deletePerson={() => deletePerson(person)}
+        />
+      )}
     </div>
   )
 }
