@@ -1,4 +1,5 @@
 const express = require('express')
+const morgan = require('morgan')
 const app = express()
 app.use(express.json())
 
@@ -25,19 +26,21 @@ let persons = [
     }
 ]
 
-app.get('/api/persons', (request, response) => {
+app.get('/api/persons', (request, response, next) => {
   response.json(persons)
+  next()
 })
 
-app.get('/info', (request, response) => {
+app.get('/info', (request, response, next) => {
   const number = persons.length
   response.send(
     `<p>Phonebook has info for ${number} people<p/>
     <p>${new Date()}</p>`
   )
+  next()
 })
 
-app.get('/api/persons/:id', (request, response) => {
+app.get('/api/persons/:id', (request, response, next) => {
   const id = Number(request.params.id)
   const person = persons.find(p => p.id === id)
   if (person) {
@@ -45,12 +48,14 @@ app.get('/api/persons/:id', (request, response) => {
   } else {
     response.status(404).send('id was not found')
   }
+  next()
 })
 
-app.delete('/api/persons/:id', (request, response) => {
+app.delete('/api/persons/:id', (request, response, next) => {
   const id = Number(request.params.id)
   persons = persons.filter(p => p.id !== id)
   response.status(204).end()
+  next()
 })
 
 const randomId = () => {
@@ -61,7 +66,7 @@ const randomId = () => {
   return id
 }
 
-app.post('/api/persons', (request, response) => {
+app.post('/api/persons', (request, response, next) => {
   const body = request.body
 
   if (!body.name || !body.number) {
@@ -84,7 +89,18 @@ app.post('/api/persons', (request, response) => {
 
   persons = persons.concat(person)
   response.json(person)
+  next()
 })
+
+morgan.token('data', (request, response) => {
+  if (request.method !== 'POST') {
+    return
+  } else {
+    return JSON.stringify(request.body)
+  }
+})
+
+app.use(morgan(':method :url :status :res[content-length] :response-time ms :data'))
 
 const PORT = 3001
 app.listen(PORT, () => {
