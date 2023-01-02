@@ -13,12 +13,12 @@ const url = `mongodb+srv://fullstack:${password}@cluster0.rudy1fd.mongodb.net/ph
 
 mongoose.connect(url)
 
-const noteSchema = new mongoose.Schema({
+const personSchema = new mongoose.Schema({
     name: String,
     number: String
 })
 
-const Person = mongoose.model('Person', noteSchema)
+const Person = mongoose.model('Person', personSchema)
 
 if (process.argv.length === 3) {
     console.log('phonebook:')
@@ -47,4 +47,3 @@ if (process.argv.length === 5) {
 if (process.argv.length !==3 && process.argv.length !== 5) {
     mongoose.connection.close()
 }
-  
